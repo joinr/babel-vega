@@ -1,0 +1,49 @@
+* Draft attempt to transpile vega 5 to ES2015 (or whatever will work)
+** Problem - Server Side Rendering of Vega Plots on Nashorn, JDK8
+Do to external constraints, I'm trying to exploit server side rendering to headlessly
+emit SVG files from vega plots programmatically.
+
+Node is not an option, but the JVM is.
+- Oracle JRE8 222+ for deployment
+- OpenJDK8 for dev
+- GraalJS is not an option.
+
+** Attempts
+I can get early versions of Vega 3 parsing and running with limited
+compatibility in Nashorn without modifications.
+
+These understandably don't render modern plots correctly, which
+we need to target Vega5.x for.
+
+Vega 5 is largely ES6 or later, so we get parsing errors 
+from Nashorn (even with es6 options enabled).
+
+*** Use babel to transpile (recommended by vega)
+So this brings us to babel.  After following some tutorials, I managed to get
+the setup with the local package.json and a simple babel.config.js.
+
+You'd invoke it as a build task from npm:
+#+BEGIN_SRC bash
+npm run build
+#+END_SRC
+
+This gets us a supposedly transpiled output.
+Nashorn then tries to load it, but I get parsing errors, e.g.
+
+#+BEGIN_SRC java 
+Execution error (ParserException) at jdk.nashorn.internal.runtime.Context$ThrowErrorManager/error (Context.java:437).
+jdk.nashorn.internal.ir.FunctionNode cannot be cast to jdk.nashorn.internal.ir.Block
+#+END_SRC
+
+Previous experience leads me to believe this is Nashorn's parser not recognizing stuff.
+
+*** Rhino
+I tried a similar path with Rhino.  I ran into similar parsing problems though.
+I would be happy to have either Nashorn or Rhino work.
+
+
+* Questions
+- What incantations are required to get Nashorn to even parse this?
+- What additional presets/plugins or even hand crafted mods are required to 
+  get nashorn to evaluate the transpiled result?
+
